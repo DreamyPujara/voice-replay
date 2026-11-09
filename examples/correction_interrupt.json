@@ -1,0 +1,12 @@
+{
+  "name": "correction and interruption happy path",
+  "initial_state": "idle",
+  "turns": [
+    {"event": "user_speech", "expect": "listening"},
+    {"event": "user_correction", "expect": "correcting"},
+    {"event": "process", "expect": "thinking"},
+    {"event": "assistant_start", "expect": "speaking"},
+    {"event": "interrupt", "expect": "interrupted"},
+    {"event": "assistant_done", "expect": "idle"}
+  ]
+}
