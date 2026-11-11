@@ -21,7 +21,7 @@ Exit codes: `0` pass, `1` expectation or baseline mismatch, `2` invalid input.
 
 ## Scenario format
 
-Each turn has an `event` and optional scenario-specific `expect` state. Supported events are `silence`, `user_speech`, `process`, `assistant_start`, `assistant_done`, `user_correction`, and `interrupt`.
+A scenario is a JSON object with a non-empty `turns` list. Each turn has an `event` and optional scenario-specific `expect` state. Supported events are `silence`, `user_speech`, `process`, `assistant_start`, `assistant_done`, `user_correction`, and `interrupt`. To keep mistakes obvious, `initial_state` must be a non-empty string when provided, `expect` must be a string when provided, and scenarios are capped at 1000 turns.
 
 ## Metrics reported
 
@@ -33,7 +33,7 @@ Each turn has an `event` and optional scenario-specific `expect` state. Supporte
 
 ## Tradeoffs and non-goals
 
-This first version is intentionally small: transitions are fixed and symbolic. It is not a speech recognizer, media tool, load tester, model evaluator, or enterprise workflow service. Future versions could add richer scenario validation after the core report format proves useful.
+This first version is intentionally small: transitions are fixed and symbolic. It is not a speech recognizer, media tool, load tester, model evaluator, or enterprise workflow service. Future versions could add richer state-machine rules after the core report format proves useful.
 
 ## AI assistance
 

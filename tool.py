@@ -11,6 +11,7 @@ TRANSITIONS = {
     "user_correction": "correcting",
     "interrupt": "interrupted",
 }
+MAX_TURNS = 1000
 
 
 def load_json(path):
@@ -18,21 +19,56 @@ def load_json(path):
         return json.load(f)
 
 
-def run_scenario(scenario):
-    name = scenario.get("name") or "unnamed"
+def require_object(value, label):
+    if not isinstance(value, dict):
+        raise ValueError("%s must be a JSON object" % label)
+
+
+def validate_scenario(scenario):
+    require_object(scenario, "scenario")
+    name = scenario.get("name")
+    if name is not None and not isinstance(name, str):
+        raise ValueError("scenario name must be a string when provided")
+    state = scenario.get("initial_state", "idle")
+    if not isinstance(state, str) or not state:
+        raise ValueError("initial_state must be a non-empty string")
     steps = scenario.get("turns")
     if not isinstance(steps, list):
         raise ValueError("scenario must contain a 'turns' list")
+    if not steps:
+        raise ValueError("scenario turns must not be empty")
+    if len(steps) > MAX_TURNS:
+        raise ValueError("scenario has %s turns; maximum is %s" % (len(steps), MAX_TURNS))
+    for i, step in enumerate(steps, 1):
+        require_object(step, "turn %s" % i)
+        event = step.get("event")
+        if event not in TRANSITIONS:
+            raise ValueError("unknown event at turn %s: %r" % (i, event))
+        expected = step.get("expect")
+        if expected is not None and not isinstance(expected, str):
+            raise ValueError("expect at turn %s must be a string when provided" % i)
 
+
+def validate_baseline(baseline):
+    require_object(baseline, "baseline")
+    if "passed" in baseline and not isinstance(baseline["passed"], bool):
+        raise ValueError("baseline passed must be true or false when provided")
+    evidence = baseline.get("evidence", [])
+    if not isinstance(evidence, list):
+        raise ValueError("baseline evidence must be a list when provided")
+    for i, step in enumerate(evidence, 1):
+        require_object(step, "baseline evidence %s" % i)
+
+
+def run_scenario(scenario):
+    validate_scenario(scenario)
+    name = scenario.get("name") or "unnamed"
+    steps = scenario["turns"]
     state = scenario.get("initial_state", "idle")
     evidence = []
     failures = []
     for i, step in enumerate(steps, 1):
-        if not isinstance(step, dict):
-            raise ValueError("each turn must be an object")
-        event = step.get("event")
-        if event not in TRANSITIONS:
-            raise ValueError("unknown event at turn %s: %r" % (i, event))
+        event = step["event"]
         before = state
         state = TRANSITIONS[event]
         expected = step.get("expect")
@@ -63,6 +99,7 @@ def run_scenario(scenario):
 
 
 def compare_baseline(report, baseline):
+    validate_baseline(baseline)
     current_path = [e["to"] for e in report["evidence"]]
     old_path = [e.get("to") for e in baseline.get("evidence", [])]
     changes = []
