@@ -10,11 +10,11 @@ It does **not** call models, record audio, play audio, or use personal data. Sce
 python tool.py examples/correction_interrupt.json
 ```
 
-Write a baseline report:
+Write deterministic JSON and Markdown reports:
 
 ```bash
-python tool.py examples/correction_interrupt.json --write-report baseline.json
-python tool.py examples/correction_interrupt.json --baseline baseline.json
+python tool.py examples/correction_interrupt.json --write-report report.json --write-markdown report.md
+python tool.py examples/correction_interrupt.json --baseline report.json --write-markdown compared.md
 ```
 
 Exit codes: `0` pass, `1` expectation or baseline mismatch, `2` invalid input.
@@ -31,9 +31,9 @@ A scenario is a JSON object with a non-empty `turns` list. Each turn has an `eve
 - per-turn deterministic evidence
 - baseline state-path changes when `--baseline` is used
 
-## Tradeoffs and non-goals
+## Assumptions, tradeoffs and non-goals
 
-This first version is intentionally small: transitions are fixed and symbolic. It is not a speech recognizer, media tool, load tester, model evaluator, or enterprise workflow service. Future versions could add richer state-machine rules after the core report format proves useful.
+Reports are deterministic because transitions are fixed symbolic mappings from synthetic events to states. Markdown is intended for quick human review; JSON remains the stable format for automation. This is not a speech recognizer, media tool, load tester, model evaluator, timing simulator, or enterprise workflow service.
 
 ## AI assistance
 

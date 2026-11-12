@@ -114,6 +114,50 @@ def compare_baseline(report, baseline):
     return report
 
 
+def markdown_report(report):
+    status = "PASS" if report["passed"] else "FAIL"
+    lines = [
+        "# voice-replay report",
+        "",
+        "- Scenario: `%s`" % report["scenario"],
+        "- Status: **%s**" % status,
+        "- Final state: `%s`" % report["final_state"],
+        "- Transition count: `%s`" % report["transition_count"],
+    ]
+    if "baseline" in report:
+        matched = "yes" if report["baseline"]["matched"] else "no"
+        lines.append("- Baseline matched: `%s`" % matched)
+    lines.extend([
+        "",
+        "## Evidence",
+        "",
+        "| Turn | Event | From | To | Expected | OK |",
+        "| ---: | --- | --- | --- | --- | --- |",
+    ])
+    for item in report["evidence"]:
+        expected = "" if item["expected"] is None else item["expected"]
+        ok = "yes" if item["ok"] else "no"
+        lines.append(
+            "| {turn} | `{event}` | `{from_}` | `{to}` | `{expected}` | {ok} |".format(
+                turn=item["turn"], event=item["event"], from_=item["from"],
+                to=item["to"], expected=expected, ok=ok
+            )
+        )
+    if report["failures"]:
+        lines.extend(["", "## Failures", ""])
+        lines.extend("- %s" % failure for failure in report["failures"])
+    if "baseline" in report and report["baseline"]["changes"]:
+        lines.extend(["", "## Baseline changes", ""])
+        lines.extend("- %s" % change for change in report["baseline"]["changes"])
+    lines.extend([
+        "",
+        "## Assumptions and limitations",
+        "",
+        "This report is generated from synthetic JSON events only. It does not use audio, personal data, model calls, timing, confidence scores, or speech recognition.",
+    ])
+    return "\n".join(lines) + "\n"
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(
         description="Run deterministic synthetic voice interaction regressions."
@@ -121,6 +165,7 @@ def main(argv=None):
     parser.add_argument("scenario", help="scenario JSON file")
     parser.add_argument("--baseline", help="previous report JSON to compare")
     parser.add_argument("--write-report", help="write report JSON to this path")
+    parser.add_argument("--write-markdown", help="write Markdown report to this path")
     args = parser.parse_args(argv)
 
     try:
@@ -136,6 +181,9 @@ def main(argv=None):
     if args.write_report:
         with open(args.write_report, "w", encoding="utf-8") as f:
             f.write(text + "\n")
+    if args.write_markdown:
+        with open(args.write_markdown, "w", encoding="utf-8") as f:
+            f.write(markdown_report(report))
 
     if not report["passed"]:
         return 1
