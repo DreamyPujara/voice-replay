@@ -23,6 +23,8 @@ Exit codes: `0` pass, `1` expectation or baseline mismatch, `2` invalid input.
 
 A scenario is a JSON object with a non-empty `turns` list. Each turn has an `event` and optional scenario-specific `expect` state. Supported events are `silence`, `user_speech`, `process`, `assistant_start`, `assistant_done`, `user_correction`, and `interrupt`. To keep mistakes obvious, `initial_state` must be a non-empty string when provided, `expect` must be a string when provided, and scenarios are capped at 1000 turns.
 
+A baseline must be a previous `voice-replay` JSON report. Each baseline evidence row must include a non-empty string `to` state so state-path comparisons cannot silently compare against missing data.
+
 ## Metrics reported
 
 - pass/fail status

@@ -58,6 +58,11 @@ def validate_baseline(baseline):
         raise ValueError("baseline evidence must be a list when provided")
     for i, step in enumerate(evidence, 1):
         require_object(step, "baseline evidence %s" % i)
+        state = step.get("to")
+        if not isinstance(state, str) or not state:
+            raise ValueError(
+                "baseline evidence %s must contain a non-empty string 'to' state" % i
+            )
 
 
 def run_scenario(scenario):
